@@ -23,9 +23,27 @@ const typeDefs = gql`
     dateOfBirth: String
   }
 
+  type Book {
+    bookId: Int!
+    title: String!
+    author: String!
+    isbn: String
+    publicationYear: Int
+    genre: String
+    publisher: String
+    pageCount: Int
+    language: String
+    price: Float
+    inStock: Boolean
+    createdAt: String!
+    updatedAt: String!
+  }
+
   type Query {
     users: [User!]!
     user(id: Int!): User
+    books: [Book!]!
+    book(id: Int!): Book
   }
 
   type Mutation {
@@ -43,6 +61,32 @@ const typeDefs = gql`
       dateOfBirth: String
     ): User!
     deleteUser(id: Int!): User
+    createBook(
+      title: String!
+      author: String!
+      isbn: String
+      publicationYear: Int
+      genre: String
+      publisher: String
+      pageCount: Int
+      language: String
+      price: Float
+      inStock: Boolean
+    ): Book!
+    updateBook(
+      bookId: Int!
+      title: String
+      author: String
+      isbn: String
+      publicationYear: Int
+      genre: String
+      publisher: String
+      pageCount: Int
+      language: String
+      price: Float
+      inStock: Boolean
+    ): Book
+    deleteBook(bookId: Int!): Book
   }
 `;
 
@@ -107,6 +151,46 @@ const resolvers = {
         avatarUrl: rows[0].avatar_url,
         bio: rows[0].bio,
         dateOfBirth: rows[0].date_of_birth,
+      };
+    },
+    books: async () => {
+      const { rows } = await pool.query("SELECT * FROM books");
+      return rows.map((row) => ({
+        bookId: row.book_id,
+        title: row.title,
+        author: row.author,
+        isbn: row.isbn,
+        publicationYear: row.publication_year,
+        genre: row.genre,
+        publisher: row.publisher,
+        pageCount: row.page_count,
+        language: row.language,
+        price: row.price,
+        inStock: row.in_stock,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    },
+    book: async (_: any, { id }: any) => {
+      const { rows } = await pool.query(
+        "SELECT * FROM books WHERE book_id = $1",
+        [id]
+      );
+      if (!rows[0]) return null;
+      return {
+        bookId: rows[0].book_id,
+        title: rows[0].title,
+        author: rows[0].author,
+        isbn: rows[0].isbn,
+        publicationYear: rows[0].publication_year,
+        genre: rows[0].genre,
+        publisher: rows[0].publisher,
+        pageCount: rows[0].page_count,
+        language: rows[0].language,
+        price: rows[0].price,
+        inStock: rows[0].in_stock,
+        createdAt: rows[0].created_at,
+        updatedAt: rows[0].updated_at,
       };
     },
   },
@@ -183,6 +267,133 @@ const resolvers = {
         avatarUrl: rows[0].avatar_url,
         bio: rows[0].bio,
         dateOfBirth: rows[0].date_of_birth,
+      };
+    },
+    createBook: async (_: any, args: any) => {
+      const {
+        title,
+        author,
+        isbn,
+        publicationYear,
+        genre,
+        publisher,
+        pageCount,
+        language,
+        price,
+        inStock,
+      } = args;
+      const { rows } = await pool.query(
+        `INSERT INTO books (
+          title, author, isbn, publication_year, genre, publisher, page_count, language, price, in_stock
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+        [
+          title,
+          author,
+          isbn,
+          publicationYear,
+          genre,
+          publisher,
+          pageCount,
+          language,
+          price,
+          inStock,
+        ]
+      );
+      return {
+        bookId: rows[0].book_id,
+        title: rows[0].title,
+        author: rows[0].author,
+        isbn: rows[0].isbn,
+        publicationYear: rows[0].publication_year,
+        genre: rows[0].genre,
+        publisher: rows[0].publisher,
+        pageCount: rows[0].page_count,
+        language: rows[0].language,
+        price: rows[0].price,
+        inStock: rows[0].in_stock,
+        createdAt: rows[0].created_at,
+        updatedAt: rows[0].updated_at,
+      };
+    },
+    updateBook: async (_: any, args: any) => {
+      const {
+        bookId,
+        title,
+        author,
+        isbn,
+        publicationYear,
+        genre,
+        publisher,
+        pageCount,
+        language,
+        price,
+        inStock,
+      } = args;
+      const { rows } = await pool.query(
+        `UPDATE books SET
+          title = COALESCE($1, title),
+          author = COALESCE($2, author),
+          isbn = COALESCE($3, isbn),
+          publication_year = COALESCE($4, publication_year),
+          genre = COALESCE($5, genre),
+          publisher = COALESCE($6, publisher),
+          page_count = COALESCE($7, page_count),
+          language = COALESCE($8, language),
+          price = COALESCE($9, price),
+          in_stock = COALESCE($10, in_stock),
+          updated_at = NOW()
+        WHERE book_id = $11 RETURNING *`,
+        [
+          title,
+          author,
+          isbn,
+          publicationYear,
+          genre,
+          publisher,
+          pageCount,
+          language,
+          price,
+          inStock,
+          bookId,
+        ]
+      );
+      if (rows.length === 0) return null;
+      return {
+        bookId: rows[0].book_id,
+        title: rows[0].title,
+        author: rows[0].author,
+        isbn: rows[0].isbn,
+        publicationYear: rows[0].publication_year,
+        genre: rows[0].genre,
+        publisher: rows[0].publisher,
+        pageCount: rows[0].page_count,
+        language: rows[0].language,
+        price: rows[0].price,
+        inStock: rows[0].in_stock,
+        createdAt: rows[0].created_at,
+        updatedAt: rows[0].updated_at,
+      };
+    },
+    deleteBook: async (_: any, { bookId }: any) => {
+      const { rows } = await pool.query(
+        "DELETE FROM books WHERE book_id = $1 RETURNING *",
+        [bookId]
+      );
+      if (rows.length === 0) return null;
+      return {
+        bookId: rows[0].book_id,
+        title: rows[0].title,
+        author: rows[0].author,
+        isbn: rows[0].isbn,
+        publicationYear: rows[0].publication_year,
+        genre: rows[0].genre,
+        publisher: rows[0].publisher,
+        pageCount: rows[0].page_count,
+        language: rows[0].language,
+        price: rows[0].price,
+        inStock: rows[0].in_stock,
+        createdAt: rows[0].created_at,
+        updatedAt: rows[0].updated_at,
       };
     },
   },

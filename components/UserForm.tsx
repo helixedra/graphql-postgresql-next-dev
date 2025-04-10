@@ -126,6 +126,7 @@ const UserForm: React.FC<UserFormProps> = ({ isOpen, onClose, onSubmit }) => {
             placeholder="Date of Birth"
             value={formState.dateOfBirth}
             className="border p-2 rounded mb-2 w-full"
+            required
             onChange={(e) =>
               setFormState({ ...formState, dateOfBirth: e.target.value })
             }

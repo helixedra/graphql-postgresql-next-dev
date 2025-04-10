@@ -3,7 +3,11 @@ import React, { useState } from "react";
 import { useMutation, useQuery, ApolloProvider } from "@apollo/client";
 import { getApolloClient } from "@/apollo/apollo-client";
 import { RiDeleteBinFill } from "react-icons/ri";
-import { GET_USERS, CREATE_USER, DELETE_USER } from "@/lib/graphql/queries";
+import {
+  GET_USERS,
+  CREATE_USER,
+  DELETE_USER,
+} from "@/lib/graphql/queries/users";
 import UserForm from "./UserForm";
 
 interface User {
@@ -20,17 +24,41 @@ interface User {
 
 function UserListContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const { data, loading, error, refetch } = useQuery(GET_USERS);
+  const { data, loading, error } = useQuery(GET_USERS);
 
   const [deleteUser] = useMutation(DELETE_USER, {
-    onCompleted: () => {
-      refetch();
+    update(cache, { data: { deleteUser } }) {
+      const existingData = cache.readQuery({
+        query: GET_USERS,
+      }) as { users: User[] } | null;
+
+      if (existingData) {
+        cache.writeQuery({
+          query: GET_USERS,
+          data: {
+            users: existingData.users.filter(
+              (user) => user.id !== deleteUser.id
+            ),
+          },
+        });
+      }
     },
   });
 
   const [createUser] = useMutation(CREATE_USER, {
-    onCompleted: () => {
-      refetch();
+    update(cache, { data: { createUser } }) {
+      const existingData = cache.readQuery({
+        query: GET_USERS,
+      }) as { users: User[] } | null;
+
+      if (existingData) {
+        cache.writeQuery({
+          query: GET_USERS,
+          data: {
+            users: [...existingData.users, createUser],
+          },
+        });
+      }
     },
   });
 

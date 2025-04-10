@@ -16,13 +16,8 @@ export default function Header() {
             </a>
           </li>
           <li>
-            <a href="/users/create" className="hover:underline">
-              Create User
-            </a>
-          </li>
-          <li>
-            <a href="/location" className="hover:underline">
-              Location
+            <a href="/books" className="hover:underline">
+              Books
             </a>
           </li>
         </ul>
