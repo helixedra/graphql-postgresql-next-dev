@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { gql } from "graphql-tag";
 import { useMutation } from "@apollo/client";
-import { useApolloClient } from "@/lib/apollo-client";
+import { useApolloClient } from "@/apollo/apollo-client";
 
 const CREATE_USER = gql`
   mutation CreateUser($username: String!) {

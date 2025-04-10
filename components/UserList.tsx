@@ -1,45 +1,25 @@
 "use client";
 import React, { useState } from "react";
-import { gql } from "graphql-tag";
 import { useMutation, useQuery, ApolloProvider } from "@apollo/client";
-import { getApolloClient } from "@/lib/apollo-client";
+import { getApolloClient } from "@/apollo/apollo-client";
 import { RiDeleteBinFill } from "react-icons/ri";
-
-const GET_USERS = gql`
-  query GetUsers {
-    users {
-      id
-      username
-    }
-  }
-`;
-
-const DELETE_USER = gql`
-  mutation DeleteUser($id: Int!) {
-    deleteUser(id: $id) {
-      id
-    }
-  }
-`;
-
-const CREATE_USER = gql`
-  mutation CreateUser($username: String!) {
-    createUser(username: $username) {
-      id
-      username
-    }
-  }
-`;
+import { GET_USERS, CREATE_USER, DELETE_USER } from "@/lib/graphql/queries";
+import UserForm from "./UserForm";
 
 interface User {
   id: number;
   username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  avatarUrl?: string;
+  bio?: string;
+  dateOfBirth?: string;
 }
 
 function UserListContent() {
-  const [formState, setFormState] = useState({
-    username: "",
-  });
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const { data, loading, error, refetch } = useQuery(GET_USERS);
 
   const [deleteUser] = useMutation(DELETE_USER, {
@@ -54,9 +34,8 @@ function UserListContent() {
     },
   });
 
-  const handleCreate = async (username: string) => {
-    await createUser({ variables: { username } });
-    setFormState({ username: "" });
+  const handleCreate = async (formState: any) => {
+    await createUser({ variables: { ...formState } });
   };
 
   const handleDelete = (id: number) => {
@@ -65,44 +44,52 @@ function UserListContent() {
     });
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    handleCreate(formState.username);
-  };
-
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
   return (
-    <div>
-      <h1>User List</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={formState.username}
-          className="border p-2 rounded mr-4"
-          required
-          onChange={(e) =>
-            setFormState({ ...formState, username: e.target.value })
-          }
-        />
-
-        <button
-          type="submit"
-          className="bg-black text-white px-4 py-2 rounded cursor-pointer"
-        >
-          Create
-        </button>
-        <p className="mt-4">Please fill in the username to create a user.</p>
-      </form>
-      <ul className="flex flex-col gap-2 w-72">
+    <div className="my-4">
+      <button
+        onClick={() => setIsFormOpen(true)}
+        className="bg-black text-white px-4 py-2 rounded cursor-pointer mb-4"
+      >
+        Add User
+      </button>
+      <UserForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleCreate}
+      />
+      <ul className="flex gap-2">
         {data?.users.map((user: User) => (
           <li
             key={user.id}
-            className="flex items-center justify-between p-2 border border-zinc-200 hover:bg-zinc-100"
+            className="flex flex-col w-2/12 p-2 border border-zinc-200 hover:bg-zinc-100"
           >
-            {user.username}
+            <p>
+              <strong>Username:</strong> {user.username}
+            </p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>First Name:</strong> {user.firstName}
+            </p>
+            <p>
+              <strong>Last Name:</strong> {user.lastName}
+            </p>
+            <p>
+              <strong>Phone:</strong> {user.phone}
+            </p>
+            <p>
+              <strong>Avatar URL:</strong> {user.avatarUrl}
+            </p>
+            <p>
+              <strong>Bio:</strong> {user.bio}
+            </p>
+            <p>
+              <strong>Date of Birth:</strong> {user.dateOfBirth}
+            </p>
             <button
               className="opacity-50 hover:opacity-100 cursor-pointer"
               onClick={() => handleDelete(user.id)}

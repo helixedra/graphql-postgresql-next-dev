@@ -20,6 +20,11 @@ export default function Header() {
               Create User
             </a>
           </li>
+          <li>
+            <a href="/location" className="hover:underline">
+              Location
+            </a>
+          </li>
         </ul>
       </nav>
     </header>
